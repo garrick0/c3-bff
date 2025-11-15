@@ -13,6 +13,12 @@
   "author": "garrick0",
   "license": "MIT",
   "dependencies": {
+    "c3-shared": "^0.1.0",
+    "c3-wiring": "^0.1.0",
+    "c3-parsing": "^0.1.0",
+    "c3-compliance": "^0.1.0",
+    "c3-projection": "^0.1.0",
+    "c3-discovery": "^0.1.0",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
