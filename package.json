@@ -7,29 +7,44 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run tests/integration",
+    "test:unit": "vitest run tests/unit"
   },
-  "keywords": ["c3", "bff", "api"],
+  "keywords": [
+    "c3",
+    "bff",
+    "api"
+  ],
   "author": "garrick0",
   "license": "MIT",
   "dependencies": {
+    "c3-compliance": "^0.1.0",
+    "c3-discovery": "^0.1.0",
+    "c3-parsing": "^0.1.0",
+    "c3-projection": "^0.1.0",
     "c3-shared": "^0.1.0",
     "c3-wiring": "^0.1.0",
-    "c3-parsing": "^0.1.0",
-    "c3-compliance": "^0.1.0",
-    "c3-projection": "^0.1.0",
-    "c3-discovery": "^0.1.0",
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@types/express": "^4.17.21",
     "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^4.0.9",
+    "openapi-typescript": "^7.10.1",
+    "supertest": "^7.1.4",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.3",
-    "tsx": "^4.7.0"
+    "vitest": "^4.0.9",
+    "yaml": "^2.8.1"
   },
   "publishConfig": {
     "access": "public"

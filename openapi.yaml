@@ -1,0 +1,635 @@
+openapi: 3.0.3
+info:
+  title: C3 BFF API
+  description: Backend-for-Frontend API for C3 Code Standards Management System
+  version: 0.1.0
+  contact:
+    name: C3 Team
+
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Check if the API is running
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - timestamp
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/projections/modules/analyze:
+    post:
+      summary: Analyze Modules
+      description: Analyze a codebase and identify module structure and dependencies
+      operationId: analyzeModules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projections/modules:
+    get:
+      summary: List Analyses
+      description: List all stored analyses
+      operationId: listAnalyses
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of analyses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisListResponse'
+
+  /api/projections/modules/{analysisId}:
+    get:
+      summary: Get Analysis
+      description: Get a specific analysis by ID
+      operationId: getAnalysis
+      parameters:
+        - name: analysisId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analysis found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete Analysis
+      description: Delete a stored analysis
+      operationId: deleteAnalysis
+      parameters:
+        - name: analysisId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analysis deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      deleted:
+                        type: boolean
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projections/modules/validate:
+    post:
+      summary: Validate Architecture
+      description: Validate codebase against architectural best practices
+      operationId: validateArchitecture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projections/modules/{analysisId}/export:
+    get:
+      summary: Export Analysis
+      description: Export analysis in various formats
+      operationId: exportAnalysis
+      parameters:
+        - name: analysisId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [json, graphml, svg, markdown]
+      responses:
+        '200':
+          description: Export completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    AnalysisRequest:
+      type: object
+      required:
+        - rootPath
+        - config
+      properties:
+        rootPath:
+          type: string
+          description: Absolute path to the codebase to analyze
+          example: /Users/username/project
+        config:
+          type: object
+          required:
+            - aggregationLevel
+          properties:
+            aggregationLevel:
+              type: string
+              enum: [directory, top-level, package]
+              description: Level at which to aggregate modules
+            includeTests:
+              type: boolean
+              default: false
+            excludePatterns:
+              type: array
+              items:
+                type: string
+              example: ['node_modules', 'dist']
+
+    AnalysisResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Analysis'
+
+    Analysis:
+      type: object
+      required:
+        - analysisId
+        - graphId
+        - summary
+        - modules
+        - dependencies
+        - analyzedAt
+      properties:
+        analysisId:
+          type: string
+        graphId:
+          type: string
+        summary:
+          $ref: '#/components/schemas/AnalysisSummary'
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Module'
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dependency'
+        hotspots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hotspot'
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+        analyzedAt:
+          type: string
+          format: date-time
+
+    AnalysisSummary:
+      type: object
+      required:
+        - totalModules
+        - totalFiles
+        - totalDependencies
+        - averageCoupling
+        - architectureScore
+      properties:
+        totalModules:
+          type: integer
+          minimum: 0
+        totalFiles:
+          type: integer
+          minimum: 0
+        totalDependencies:
+          type: integer
+          minimum: 0
+        averageCoupling:
+          type: number
+          minimum: 0
+        maxDependencies:
+          type: integer
+          minimum: 0
+        circularDependencies:
+          type: integer
+          minimum: 0
+        architectureScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+
+    Module:
+      type: object
+      required:
+        - id
+        - name
+        - path
+        - files
+        - dependencies
+        - dependents
+        - fileCount
+        - metrics
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        path:
+          type: string
+        files:
+          type: array
+          items:
+            type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+        dependents:
+          type: array
+          items:
+            type: string
+        fileCount:
+          type: integer
+          minimum: 0
+        dependencyCount:
+          type: integer
+          minimum: 0
+        dependentCount:
+          type: integer
+          minimum: 0
+        metrics:
+          $ref: '#/components/schemas/ModuleMetrics'
+
+    ModuleMetrics:
+      type: object
+      required:
+        - fileCount
+        - dependencyCount
+        - dependentCount
+      properties:
+        fileCount:
+          type: integer
+          minimum: 0
+        totalLines:
+          type: integer
+          minimum: 0
+        dependencyCount:
+          type: integer
+          minimum: 0
+        dependentCount:
+          type: integer
+          minimum: 0
+
+    Dependency:
+      type: object
+      required:
+        - from
+        - to
+        - strength
+      properties:
+        from:
+          type: string
+        to:
+          type: string
+        strength:
+          type: integer
+          minimum: 1
+
+    Hotspot:
+      type: object
+      required:
+        - moduleId
+        - moduleName
+        - usedByCount
+        - reason
+      properties:
+        moduleId:
+          type: string
+        moduleName:
+          type: string
+        usedByCount:
+          type: integer
+        reason:
+          type: string
+
+    Issue:
+      type: object
+      required:
+        - type
+        - severity
+        - message
+      properties:
+        type:
+          type: string
+        severity:
+          type: string
+          enum: [error, warning, info]
+        message:
+          type: string
+        location:
+          type: string
+
+    Recommendation:
+      type: object
+      required:
+        - type
+        - message
+        - severity
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [success, warning, error, info]
+
+    AnalysisListResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          required:
+            - analyses
+            - total
+          properties:
+            analyses:
+              type: array
+              items:
+                $ref: '#/components/schemas/AnalysisListItem'
+            total:
+              type: integer
+
+    AnalysisListItem:
+      type: object
+      required:
+        - analysisId
+        - rootPath
+        - moduleCount
+        - createdAt
+      properties:
+        analysisId:
+          type: string
+        rootPath:
+          type: string
+        moduleCount:
+          type: integer
+        dependencyCount:
+          type: integer
+        circularCount:
+          type: integer
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        createdAt:
+          type: string
+          format: date-time
+
+    ValidationRequest:
+      type: object
+      required:
+        - rootPath
+      properties:
+        rootPath:
+          type: string
+
+    ValidationResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ValidationResult'
+
+    ValidationResult:
+      type: object
+      required:
+        - score
+        - grade
+        - checks
+        - layers
+        - violations
+        - recommendations
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        grade:
+          type: string
+          enum: ['A+', 'A', 'B', 'C', 'D', 'F']
+        checks:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ValidationCheck'
+        layers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Layer'
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Violation'
+        recommendations:
+          type: array
+          items:
+            type: string
+
+    ValidationCheck:
+      type: object
+      required:
+        - name
+        - passed
+        - score
+      properties:
+        name:
+          type: string
+        passed:
+          type: boolean
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        message:
+          type: string
+
+    Layer:
+      type: object
+      required:
+        - name
+        - modules
+      properties:
+        name:
+          type: string
+        modules:
+          type: array
+          items:
+            type: string
+
+    Violation:
+      type: object
+      required:
+        - rule
+        - severity
+        - message
+      properties:
+        rule:
+          type: string
+        severity:
+          type: string
+          enum: [error, warning, info]
+        message:
+          type: string
+        module:
+          type: string
+
+    ExportResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          required:
+            - format
+            - filename
+            - content
+          properties:
+            format:
+              type: string
+              enum: [json, graphml, svg, markdown]
+            filename:
+              type: string
+            content:
+              type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+
