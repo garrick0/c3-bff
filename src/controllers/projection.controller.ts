@@ -89,6 +89,9 @@ export function analyzeModules(container: Container) {
         id: m.id,
         name: m.name,
         path: m.path,
+        files: m.files || [],
+        dependencies: m.getDependencies ? m.getDependencies() : [],
+        dependents: m.getDependents ? m.getDependents() : [],
         fileCount: m.files.length,
         dependencyCount: m.getDependencyCount(),
         dependentCount: m.getDependentCount(),
@@ -338,12 +341,14 @@ export function validateArchitecture(container: Container) {
       await new Promise<void>((resolve, reject) => {
         const mockRes = {
           ...res,
+          status: (code: number) => mockRes,
           json: (data: any) => {
             if (data.success) {
               resolve();
             } else {
               reject(new Error(data.error?.message || 'Analysis failed'));
             }
+            return mockRes;
           }
         } as Response;
 
@@ -405,20 +410,27 @@ export function validateArchitecture(container: Container) {
 
       const checks = {
         domainIndependence: {
+          name: 'Domain Independence',
           passed: domainViolations.length === 0,
+          score: domainViolations.length === 0 ? 100 : Math.max(0, 100 - domainViolations.length * 30),
           message:
             domainViolations.length === 0
               ? 'Domain has 0 dependencies on Infrastructure/Application'
               : `Domain has ${domainViolations.length} violation(s)`,
           violations: domainViolations
         },
-        applicationLayer: {
-          passed: true,
-          message: 'Application properly depends on Domain',
-          violations: []
+        layeredArchitecture: {
+          name: 'Layered Architecture',
+          passed: domainViolations.length === 0,
+          score: domainViolations.length === 0 ? 100 : Math.max(0, 100 - domainViolations.length * 30),
+          message: domainViolations.length === 0
+            ? 'Layers are properly separated'
+            : `${domainViolations.length} layer violation(s) detected`
         },
-        circularDependencies: {
+        noCycles: {
+          name: 'No Circular Dependencies',
           passed: latest.summary.circularDependencies === 0,
+          score: latest.summary.circularDependencies === 0 ? 100 : Math.max(0, 100 - latest.summary.circularDependencies * 20),
           message:
             latest.summary.circularDependencies === 0
               ? 'No circular dependencies detected'
@@ -426,7 +438,9 @@ export function validateArchitecture(container: Container) {
           cycles: []
         },
         dependencyDirection: {
+          name: 'Dependency Direction',
           passed: domainViolations.length === 0,
+          score: domainViolations.length === 0 ? 100 : Math.max(0, 100 - domainViolations.length * 20),
           message:
             domainViolations.length === 0
               ? 'All dependencies flow inward'
@@ -434,6 +448,28 @@ export function validateArchitecture(container: Container) {
           violations: domainViolations
         }
       };
+
+      const layersData = [
+        {
+          name: 'domain',
+          modules: domainModules.map((m: any) => m.id)
+        },
+        {
+          name: 'application',
+          modules: appModules.map((m: any) => m.id)
+        },
+        {
+          name: 'infrastructure',
+          modules: infraModules.map((m: any) => m.id)
+        }
+      ];
+
+      const violations = domainViolations.map((v: any) => ({
+        rule: 'domain-independence',
+        severity: 'error' as const,
+        message: `Domain module "${v.from}" depends on "${v.to}"`,
+        module: v.from
+      }));
 
       const grade =
         score >= 90 ? 'A+' : score >= 75 ? 'A' : score >= 60 ? 'B' : score >= 45 ? 'C' : 'F';
@@ -443,6 +479,9 @@ export function validateArchitecture(container: Container) {
           validationId,
           score,
           checks,
+          layers: layersData,
+          violations,
+          recommendations: latest.recommendations || [],
           summary: {
             domainModules: domainModules.length,
             applicationModules: appModules.length,
