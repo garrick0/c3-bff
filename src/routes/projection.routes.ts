@@ -4,28 +4,25 @@
 
 import { Router } from 'express';
 import { Container } from 'c3-wiring';
-import { createSuccessResponse, createErrorResponse } from 'c3-shared';
+import {
+  analyzeModules,
+  getModuleView,
+  exportModuleView,
+  validateArchitecture,
+  listAnalyses,
+  deleteAnalysis
+} from '../controllers/projection.controller.js';
 
 export function createProjectionRoutes(container: Container): Router {
   const router = Router();
 
-  router.post('/', async (req, res) => {
-    try {
-      const { graphId, projectionType, aggregationLevel } = req.body;
-
-      // Stub: Would generate projection
-      res.json(createSuccessResponse({
-        projectionId: `proj-${Date.now()}`,
-        type: projectionType,
-        summary: {}
-      }));
-    } catch (error) {
-      res.status(500).json(createErrorResponse(
-        'PROJECTION_ERROR',
-        (error as Error).message
-      ));
-    }
-  });
+  // Module analysis endpoints
+  router.post('/modules/analyze', analyzeModules(container));
+  router.get('/modules/:analysisId', getModuleView(container));
+  router.get('/modules/:analysisId/export', exportModuleView(container));
+  router.post('/modules/validate', validateArchitecture(container));
+  router.get('/modules', listAnalyses(container));
+  router.delete('/modules/:analysisId', deleteAnalysis(container));
 
   return router;
 }
