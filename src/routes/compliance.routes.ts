@@ -3,9 +3,9 @@
  */
 
 import { Router } from 'express';
-import { Container } from 'c3-wiring';
-import { TOKENS } from 'c3-wiring';
-import { createSuccessResponse, createErrorResponse } from 'c3-shared';
+import { Container } from '@garrick0/c3-wiring';
+import { TOKENS } from '@garrick0/c3-wiring';
+import { createSuccessResponse, createErrorResponse } from '@garrick0/c3-shared';
 
 export function createComplianceRoutes(container: Container): Router {
   const router = Router();

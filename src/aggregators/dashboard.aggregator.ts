@@ -2,8 +2,8 @@
  * Dashboard aggregator - Combines data from multiple contexts
  */
 
-import { Container } from 'c3-wiring';
-import { TOKENS } from 'c3-wiring';
+import { Container } from '@garrick0/c3-wiring';
+import { TOKENS } from '@garrick0/c3-wiring';
 
 export interface DashboardData {
   parsing: {

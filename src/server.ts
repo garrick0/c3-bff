@@ -3,7 +3,7 @@
  */
 
 import { createApp } from './app.js';
-import { getContainer } from 'c3-wiring';
+import { getContainer } from '@garrick0/c3-wiring';
 
 export async function createServer() {
   // Initialize DI container

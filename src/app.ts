@@ -4,7 +4,7 @@
 
 import express, { Express } from 'express';
 import cors from 'cors';
-import { Container } from 'c3-wiring';
+import { Container } from '@garrick0/c3-wiring';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { loggingMiddleware } from './middleware/logging.middleware.js';
 import { createRoutes } from './routes/index.js';

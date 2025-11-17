@@ -4,9 +4,9 @@
  */
 
 import { Request, Response } from 'express';
-import { Container } from 'c3-wiring';
-import { TOKENS } from 'c3-wiring';
-import { createSuccessResponse, createErrorResponse } from 'c3-shared';
+import { Container } from '@garrick0/c3-wiring';
+import { TOKENS } from '@garrick0/c3-wiring';
+import { createSuccessResponse, createErrorResponse } from '@garrick0/c3-shared';
 import type {
   GraphLoader,
   ModuleProjectionStrategy,
@@ -22,7 +22,7 @@ import type {
   AggregationLevel,
   ViewConfiguration,
   ProjectionType
-} from 'c3-projection';
+} from '@garrick0/c3-projection';
 import * as path from 'path';
 
 // In-memory cache for analyses (TODO: Replace with Redis/DB)

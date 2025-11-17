@@ -3,7 +3,7 @@
  */
 
 import { Router } from 'express';
-import { Container } from 'c3-wiring';
+import { Container } from '@garrick0/c3-wiring';
 import {
   analyzeModules,
   getModuleView,

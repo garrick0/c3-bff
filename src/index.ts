@@ -4,7 +4,7 @@
 
 import { createServer } from './server.js';
 import { config } from './config.js';
-import { createLogger } from 'c3-shared';
+import { createLogger } from '@garrick0/c3-shared';
 
 const logger = createLogger('BFF');
 

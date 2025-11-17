@@ -3,7 +3,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { createErrorResponse } from 'c3-shared';
+import { createErrorResponse } from '@garrick0/c3-shared';
 
 export function errorMiddleware(
   error: Error,

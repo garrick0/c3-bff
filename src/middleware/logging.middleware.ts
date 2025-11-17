@@ -3,7 +3,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { createLogger } from 'c3-shared';
+import { createLogger } from '@garrick0/c3-shared';
 
 const logger = createLogger('BFF:HTTP');
 
