@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { createApp } from '../../../src/app.js';
-import { bootstrap } from 'c3-wiring';
+import { bootstrap } from '@garrick0/c3-wiring';
 
 let testApp: express.Application | null = null;
 let testContainer: any = null;
