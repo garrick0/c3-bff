@@ -37,3 +37,32 @@ jobs:
         with:
           name: build-artifacts
           path: dist/
+
+      - name: Notify orchestrator
+        if: success() && github.event_name == 'push'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: garrick0/c3-platform
+          event-type: dependency_updated
+          client-payload: |
+            {
+              "repo": "${{ github.repository }}",
+              "sha": "${{ github.sha }}",
+              "workflow_run_id": "${{ github.run_id }}",
+              "build_successful": "true"
+            }
+
+      - name: Notify orchestrator of failure
+        if: failure() && github.event_name == 'push'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: garrick0/c3-platform
+          event-type: build_failed
+          client-payload: |
+            {
+              "repo": "${{ github.repository }}",
+              "sha": "${{ github.sha }}",
+              "workflow_run_id": "${{ github.run_id }}"
+            }
