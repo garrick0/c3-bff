@@ -62,7 +62,7 @@ export function analyzeModules(container: Container) {
 
       // Import dynamically to avoid type issues
       const { ModuleProjectionStrategy, ViewConfiguration, ProjectionType, AggregationLevel } =
-        await import('c3-projection');
+        await import('@garrick0/c3-projection');
 
       // Create projection
       const strategy = new ModuleProjectionStrategy(logger, rootPath);
